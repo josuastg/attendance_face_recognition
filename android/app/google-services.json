@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "192276206170",
+    "project_id": "attendance-face-recognit-40f82",
+    "storage_bucket": "attendance-face-recognit-40f82.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:192276206170:android:84abe8d2bf4430136ffe63",
+        "android_client_info": {
+          "package_name": "com.example.attendance_face_recognition"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3wDL0WOLkbL6RyIwIFi-CIoCmmSa0HUw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

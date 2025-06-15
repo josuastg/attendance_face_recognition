@@ -1,0 +1,22 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "attendance-face-recognit-40f82",
+                    "appId": "1:192276206170:android:84abe8d2bf4430136ffe63",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "attendance-face-recognit-40f82",
+                    "configurations": {
+                        "android": "1:192276206170:android:84abe8d2bf4430136ffe63",
+                        "ios": "1:192276206170:ios:8a163f3a54337af66ffe63"
+                    }
+                }
+            }
+        }
+    }
+}
