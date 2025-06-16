@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,17 +25,24 @@ class _HomeScreenState extends State<HomeScreen> {
     _startClock();
   }
 
-  void getUserRole() {
-    // Cek email admin
-    if (user?.email == 'admin@gmail.com') {
+  void getUserRole() async {
+    if (user == null) return;
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    if (userDoc.exists) {
+      final data = userDoc.data()!;
       setState(() {
-        role = 'admin';
-        name = 'Admin'; // Default nama jika belum pakai Firestore
+        role = data['role'] ?? 'karyawan'; // default to karyawan jika tidak ada
+        name = data['name'] ?? 'User';
       });
     } else {
       setState(() {
         role = 'karyawan';
-        name = 'Lorem Ipsum'; // Default nama
+        name = 'User';
       });
     }
   }
@@ -57,26 +65,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _logout() async {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text("Konfirmasi Logout"),
-      content: const Text("Apakah Anda yakin ingin keluar dari aplikasi?"),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(), // Batal
-          child: const Text("Batal"),
-        ),
-        TextButton(
-          onPressed: () async {
-            Navigator.of(context).pop(); // Tutup dialog
-            await FirebaseAuth.instance.signOut();
-          },
-          child: const Text("Ya"),
-        ),
-      ],
-    ),
-  );
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Konfirmasi Logout"),
+        content: const Text("Apakah Anda yakin ingin keluar dari aplikasi?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(), // Batal
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop(); // Tutup dialog
+              await FirebaseAuth.instance.signOut();
+            },
+            child: const Text("Ya"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -169,7 +177,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.person_add,
                               label: "Tambah Data Karyawan",
                               onPressed: () {
-                                // Aksi
+                                Navigator.pushNamed(
+                                  context,
+                                  '/registerkaryawan',
+                                ); // <- Navigasi ke register
                               },
                             ),
                             IconButtonWithLabel(
@@ -181,7 +192,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.location_on,
                               label: "Setting Lokasi Absen",
                               onPressed: () {
-                                // Aksi
+                                Navigator.pushNamed(
+                                  context,
+                                  '/listlokasi',
+                                );
                               },
                             ),
                           ],
@@ -223,11 +237,7 @@ class IconButtonWithLabel extends StatelessWidget {
             //   shape: BoxShape.circle,
             //   color: Colors.grey[200],
             // ),
-            child: Icon(
-              icon,
-              size: 45,
-              color: Colors.black87,
-            ),
+            child: Icon(icon, size: 45, color: Colors.black87),
           ),
           const SizedBox(height: 2),
           Text(

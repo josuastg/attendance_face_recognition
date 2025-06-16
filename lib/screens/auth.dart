@@ -1,4 +1,3 @@
-import 'package:attendance_face_recognition/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -7,7 +6,6 @@ class AuthScreen extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
     return _AuthScreenState();
   }
 }
@@ -72,7 +70,6 @@ class _AuthScreenState extends State<AuthScreen> {
     validateEmail();
     validatePassword();
     try {
-      print('test' + _emailController.text);
       await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),

@@ -1,6 +1,9 @@
 import 'package:attendance_face_recognition/gate/authgate.dart';
 import 'package:attendance_face_recognition/screens/auth.dart';
 import 'package:attendance_face_recognition/screens/home.dart';
+import 'package:attendance_face_recognition/screens/listlokasiabsen.dart';
+import 'package:attendance_face_recognition/screens/registerkaryawan.dart';
+import 'package:attendance_face_recognition/screens/registerlokasiabsen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -26,6 +29,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => AuthScreen(),
         '/home': (context) => HomeScreen(),
+        '/registerkaryawan': (context) => RegisterKaryawanScreen(),
+        '/listlokasi': (context) => ListLokasiAbsenScreen(),
+        '/formlokasi': (_) => const FormLokasiAbsenScreen(),
       },
       theme: ThemeData(
         useMaterial3: true,
