@@ -1,9 +1,9 @@
 import 'dart:io';
+import 'package:attendance_face_recognition/screens/admin/attendance_history/detailattendance.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 
 class AttendanceListScreen extends StatefulWidget {
@@ -14,9 +14,9 @@ class AttendanceListScreen extends StatefulWidget {
 }
 
 class _AttendanceListScreenState extends State<AttendanceListScreen> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String _searchKeyword = '';
-  bool _isExporting = false;
+  final bool _isExporting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
@@ -38,10 +38,15 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               },
               decoration: InputDecoration(
                 hintText: 'Cari nama karyawan',
-                prefixIcon: Icon(Icons.search),
+                suffixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
+                hintStyle: TextStyle(fontSize: 13),
               ),
             ),
+          ),
+          const Text(
+            "Data yang diambil adalah 1 bulan terakhir.",
+            style: TextStyle(fontSize: 12),
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -69,64 +74,77 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                   itemCount: filteredDocs.length,
                   itemBuilder: (context, index) {
                     final user = filteredDocs[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      elevation: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(
-                          12,
-                        ), // Tambahkan padding agar lebih lega
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Konten Kiri (Nama, Departemen, Email)
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    user['name'],
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailAttendanceScreen(
+                              userId: user['id'],
+                              userName: user['name'],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                            12,
+                          ), // Tambahkan padding agar lebih lega
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Konten Kiri (Nama, Departemen, Email)
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      user['name'],
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Departemen : ${user['departement']}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    Text(
+                                      'Email : ${user['email']}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Tombol Export File di Kanan
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.download),
+                                    onPressed: () {
+                                      final userData =
+                                          user.data() as Map<String, dynamic>;
+                                      userData['id'] = user.id;
+                                      exportFile(context, userData);
+                                    },
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Departemen : ${user['departement']}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  Text(
-                                    'Email : ${user['email']}',
-                                    style: const TextStyle(fontSize: 12),
+                                  const Text(
+                                    "Export File",
+                                    style: TextStyle(fontSize: 10),
                                   ),
                                 ],
                               ),
-                            ),
-
-                            // Tombol Export File di Kanan
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.download),
-                                  onPressed: () {
-                                    final userData =
-                                        user.data() as Map<String, dynamic>;
-                                    userData['id'] = user.id;
-                                    exportFile(context, userData);
-                                  },
-                                ),
-                                const Text(
-                                  "Export File",
-                                  style: TextStyle(fontSize: 10),
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -196,7 +214,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
             'hari': DateFormat('EEEE', 'id_ID').format(time),
             'masuk': '',
             'keluar': '',
-            'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time)
+            'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time),
           },
         );
 

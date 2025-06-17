@@ -1,3 +1,4 @@
+import 'package:attendance_face_recognition/screens/employee/attendance_history/mydetailattendance.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String name = '';
   String today = '';
   String time = '';
-
+  String id = '';
   @override
   void initState() {
     super.initState();
@@ -35,14 +36,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (userDoc.exists) {
       final data = userDoc.data()!;
+      print('my data $data');
       setState(() {
         role = data['role'] ?? 'karyawan'; // default to karyawan jika tidak ada
         name = data['name'] ?? 'User';
+        id = data['id'] ?? '';
       });
     } else {
       setState(() {
         role = 'karyawan';
         name = 'User';
+        id = '';
       });
     }
   }
@@ -156,7 +160,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.history,
                               label: "Riwayat Kehadiran",
                               onPressed: () {
-                                // Aksi
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        MyDetailAttendanceScreen(
+                                          userId: id,
+                                          userName: name,
+                                        ),
+                                  ),
+                                );
                               },
                             ),
                             IconButtonWithLabel(
