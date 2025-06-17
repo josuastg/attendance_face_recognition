@@ -192,10 +192,11 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         dailyAbsensi.putIfAbsent(
           dateKey,
           () => {
-            'tanggal': DateFormat('dd-MM-yyyy').format(date),
-            'hari': DateFormat('EEEE', 'id_ID').format(date),
+            'tanggal': DateFormat('dd/MM/yyyy').format(date),
+            'hari': DateFormat('EEEE', 'id_ID').format(time),
             'masuk': '',
             'keluar': '',
+            'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time)
           },
         );
 
@@ -217,6 +218,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         TextCellValue('Hari'),
         TextCellValue('Scan Masuk'),
         TextCellValue('Scan Keluar'),
+        TextCellValue('Bulan'),
       ]);
 
       dailyAbsensi.forEach((key, data) {
@@ -228,6 +230,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           TextCellValue(data['hari'] ?? ''),
           TextCellValue(data['masuk'] ?? ''),
           TextCellValue(data['keluar'] ?? ''),
+          TextCellValue(data['bulan'] ?? ''),
         ]);
       });
 
