@@ -139,7 +139,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Center(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  // Aksi absen
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/dashboardattendance',
+                                  );
                                 },
                                 child: const Text("Absen Sekarang"),
                               ),
