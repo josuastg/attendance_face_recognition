@@ -2,6 +2,11 @@
  <uses-permission android:name="android.permission.CAMERA" />
         <uses-permission android:name="android.permission.RECORD_AUDIO" />
         <uses-feature android:name="android.hardware.camera" android:required="true"/>
+        <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    android:maxSdkVersion="28"/>
+        <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+        <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+
     <application
         android:label="attendance_face_recognition"
         android:name="${applicationName}"

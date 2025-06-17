@@ -170,6 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.list,
                               label: "List Kehadiran Karyawan",
                               onPressed: () {
+                                Navigator.pushNamed(context, '/listattendance');
                                 // Aksi
                               },
                             ),
@@ -192,10 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.location_on,
                               label: "Setting Lokasi Absen",
                               onPressed: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/listlokasi',
-                                );
+                                Navigator.pushNamed(context, '/listlokasi');
                               },
                             ),
                           ],
