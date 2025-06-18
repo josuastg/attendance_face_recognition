@@ -2,6 +2,8 @@ import 'package:attendance_face_recognition/gate/authgate.dart';
 import 'package:attendance_face_recognition/screens/admin/attendance_history/attendancelist.dart';
 import 'package:attendance_face_recognition/screens/auth.dart';
 import 'package:attendance_face_recognition/screens/employee/attendance/dashboardattendance.dart';
+import 'package:attendance_face_recognition/screens/employee/attendance/faceattendance.dart';
+import 'package:attendance_face_recognition/screens/employee/attendance/registerface5.dart';
 import 'package:attendance_face_recognition/screens/home.dart';
 import 'package:attendance_face_recognition/screens/admin/location/listlokasiabsen.dart';
 import 'package:attendance_face_recognition/screens/admin/register/registerkaryawan.dart';
@@ -36,6 +38,8 @@ class MyApp extends StatelessWidget {
         '/formlokasi': (context) => const FormLokasiAbsenScreen(),
         '/listattendance': (context) => AttendanceListScreen(),
         "/dashboardattendance": (context) => DashboarAttendanceScreen(),
+        "/faceattendance": (context) => FaceAttendanceScreen(),
+        "/faceregistrationscreen": (context) => FaceRegistrationScreen(),
       },
       theme: ThemeData(
         useMaterial3: true,

@@ -1,3 +1,4 @@
+import 'package:attendance_face_recognition/screens/employee/attendance/registerface.dart';
 import 'package:attendance_face_recognition/screens/employee/attendance_history/mydetailattendance.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -36,12 +37,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (userDoc.exists) {
       final data = userDoc.data()!;
-      print('my data $data');
       setState(() {
         role = data['role'] ?? 'karyawan'; // default to karyawan jika tidak ada
         name = data['name'] ?? 'User';
         id = data['id'] ?? '';
       });
+
+      // ✅ Cek apakah user sudah memiliki face_embedding
+      final faceEmbedding = data['face_embedding'];
+      if (faceEmbedding == null || faceEmbedding.toString().isEmpty) {
+        // ⏩ Redirect ke halaman pendaftaran wajah
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  const RegisterFaceScreen(), // ganti sesuai nama page-mu
+            ),
+          );
+        });
+      }
     } else {
       setState(() {
         role = 'karyawan';
