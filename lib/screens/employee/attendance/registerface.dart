@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -17,7 +18,7 @@ class _RegisterFaceScreenState extends State<RegisterFaceScreen> {
   late CameraController _cameraController;
   bool _isCameraInitialized = false;
   List<XFile> _capturedPhotos = [];
-
+  final userId = FirebaseAuth.instance.currentUser?.uid;
   @override
   void initState() {
     super.initState();
@@ -87,46 +88,71 @@ class _RegisterFaceScreenState extends State<RegisterFaceScreen> {
   Future<void> _submitPhotos() async {
     if (_capturedPhotos.length != 3) return;
 
-    final url = Uri.parse('https://your-api-url.com/register-face');
+    // Tampilkan dialog loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
 
-    final request = http.MultipartRequest('POST', url);
-    for (int i = 0; i < 3; i++) {
-      request.files.add(
-        await http.MultipartFile.fromPath('photo$i', _capturedPhotos[i].path),
-      );
-    }
+    try {
+      final url = Uri.parse('http://192.168.1.7:5001/register-face');
+      final request = http.MultipartRequest('POST', url);
+      for (int i = 0; i < 3; i++) {
+        request.files.add(
+          await http.MultipartFile.fromPath('photo$i', _capturedPhotos[i].path),
+        );
+      }
+      request.fields['user_id'] =
+          userId ?? ''; // Ganti dengan userId yang valid
+      final response = await request.send();
 
-    final response = await request.send();
-    // if (response.statusCode == 200) {
-    //   // ✅ Tampilkan dialog berhasil simpan
-    //   if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Berhasil'),
-          content: const Text(
-            'Wajah berhasil disimpan.\nSegera lakukan absen.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/home',
-                  (route) => false,
-                );
-              },
-              child: const Text('OK'),
+      // Tutup dialog loading
+      if (context.mounted) Navigator.of(context).pop();
+
+      print('responku $response');
+      print(response.reasonPhrase);
+      if (response.statusCode == 200) {
+        // ✅ Tampilkan dialog berhasil simpan
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Berhasil'),
+            content: const Text(
+              'Wajah berhasil disimpan.\nSegera lakukan absen.',
             ),
-          ],
-        ),
-      );
-    // } else {
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(const SnackBar(content: Text('Gagal simpan foto!')));
-    // }
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Tutup dialog
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/home',
+                    (route) => false,
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Gagal simpan foto!')));
+      }
+    } catch (e) {
+      print('errorku $e');
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+      }
+    }
   }
 
   @override
