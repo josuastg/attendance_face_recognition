@@ -46,6 +46,7 @@ dependencies:
   http: ^1.4.0
   path: ^1.9.1
   image: ^4.3.0
+  geolocator: ^14.0.1
 
 dev_dependencies:
   flutter_test:
