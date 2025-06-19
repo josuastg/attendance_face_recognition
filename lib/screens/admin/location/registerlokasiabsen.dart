@@ -16,34 +16,13 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _radiusController = TextEditingController();
 
-  String? _selectedDepartemen;
-  String? _selectedStatus;
-
   bool _isLoading = false;
-
-  final List<String> departemenOptions = [
-    "All",
-    'Accounting',
-    'Engineering',
-    'HRD',
-    'MIS',
-    'Marketing',
-    'PPIC',
-    'Produksi',
-    'Purchasing',
-    'QA',
-    'Others',
-  ];
-
-  final List<String> statusOptions = ['Active', 'Inactive'];
-
+  bool marketingFlexible = false;
   bool _isFormValid() {
     return _namaLokasiController.text.isNotEmpty &&
         _latitudeController.text.isNotEmpty &&
         _longitudeController.text.isNotEmpty &&
         _radiusController.text.isNotEmpty &&
-        _selectedDepartemen != null &&
-        _selectedStatus != null &&
         longitudeErrorText == null &&
         latitudeErrorText == null;
   }
@@ -57,7 +36,8 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
       if (value.isEmpty) {
         latitudeErrorText = 'Latitude wajib diisi';
       } else if (!regex.hasMatch(value)) {
-        latitudeErrorText = 'Format latitude tidak valid, contoh : -6.1751 atau +90';
+        latitudeErrorText =
+            'Format latitude tidak valid, contoh : -6.1751 atau +90';
       } else {
         latitudeErrorText = null;
       }
@@ -70,7 +50,8 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
       if (value.isEmpty) {
         longitudeErrorText = 'Longitude wajib diisi';
       } else if (!regex.hasMatch(value)) {
-        longitudeErrorText = 'Format longitude tidak valid, contoh : -6.1751 atau +90';
+        longitudeErrorText =
+            'Format longitude tidak valid, contoh : -6.1751 atau +90';
       } else {
         longitudeErrorText = null;
       }
@@ -81,32 +62,42 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    final user = FirebaseAuth.instance.currentUser;
 
     try {
-      await FirebaseFirestore.instance.collection('lokasi_absen').add({
-        'id': user?.uid,
-        'nama_lokasi': _namaLokasiController.text.trim(),
-        'departemen': _selectedDepartemen,
-        'latitude': _latitudeController.text.trim(),
-        'longitude': _longitudeController.text.trim(),
-        'radius': _radiusController.text.trim(),
-        'status': _selectedStatus,
-        'created_at': Timestamp.now(),
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lokasi absen berhasil disimpan.')),
+      final ref = await FirebaseFirestore.instance
+          .collection('lokasi_absen')
+          .add({
+            'nama_lokasi': _namaLokasiController.text.trim(),
+            'latitude': _latitudeController.text.trim(),
+            'longitude': _longitudeController.text.trim(),
+            'radius': int.parse(_radiusController.text.trim()),
+            'created_at': Timestamp.now(),
+            'marketing_flexible': marketingFlexible,
+          });
+      await ref.set({'id': ref.id}, SetOptions(merge: true));
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Lokasi absen berhasil disimpan.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/listlokasi');
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('')));
 
       _namaLokasiController.clear();
       _latitudeController.clear();
       _longitudeController.clear();
       _radiusController.clear();
-      setState(() {
-        _selectedDepartemen = null;
-        _selectedStatus = null;
-      });
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -134,24 +125,6 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                 ),
                 validator: (value) =>
                     value!.isEmpty ? 'Nama lokasi wajib diisi' : null,
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                value: _selectedDepartemen,
-                decoration: const InputDecoration(labelText: 'Departemen'),
-                items: departemenOptions.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedDepartemen = value;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Departemen wajib dipilih' : null,
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -184,25 +157,25 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                 validator: (value) =>
                     value!.isEmpty ? 'Radius wajib diisi' : null,
               ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                value: _selectedStatus,
-                decoration: const InputDecoration(labelText: 'Status'),
-                items: statusOptions.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedStatus = value;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Status wajib dipilih' : null,
-              ),
               const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Marketing Flexible (Opsional):',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  Switch(
+                    value: marketingFlexible,
+                    onChanged: (value) async {
+                      setState(() {
+                        marketingFlexible = value;
+                      });
+                      // Tidak perlu setState(), StreamBuilder akan rebuild sendiri
+                    },
+                  ),
+                ],
+              ),
               ElevatedButton(
                 onPressed: _isFormValid() ? _submitForm : null,
                 child: _isLoading

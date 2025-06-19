@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AttendanceListScreen extends StatefulWidget {
   const AttendanceListScreen({super.key});
@@ -184,9 +185,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       final snapshot = await FirebaseFirestore.instance
           .collection('absensi')
           .where('user_id', isEqualTo: uid)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(now))
-          .orderBy('date')
+          .where('time', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('time', isLessThanOrEqualTo: Timestamp.fromDate(now))
+          .orderBy('time')
           .get();
 
       if (snapshot.docs.isEmpty) {
@@ -197,37 +198,35 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         return;
       }
 
+      // final excel = Excel.createExcel();
+      // final sheet = excel['Sheet1'];
+
       // Buat map pairing masuk & keluar berdasarkan tanggal
-      Map<String, Map<String, String>> dailyAbsensi = {};
+      final rawAbsensi = <Map<String, dynamic>>[];
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        final date = (data['date'] as Timestamp).toDate();
         final time = (data['time'] as Timestamp).toDate();
-        final type = data['type'];
-        final dateKey = DateFormat('yyyy-MM-dd').format(date);
-
-        dailyAbsensi.putIfAbsent(
-          dateKey,
-          () => {
-            'tanggal': DateFormat('dd/MM/yyyy').format(date),
-            'hari': DateFormat('EEEE', 'id_ID').format(time),
-            'masuk': '',
-            'keluar': '',
-            'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time),
-          },
-        );
-
-        if (type == 'absen_masuk') {
-          dailyAbsensi[dateKey]!['masuk'] = DateFormat('HH:mm').format(time);
-        } else if (type == 'absen_keluar') {
-          dailyAbsensi[dateKey]!['keluar'] = DateFormat('HH:mm').format(time);
-        }
+        rawAbsensi.add({
+          'type': data['type'],
+          'time': time,
+          'tanggal': DateFormat('dd/MM/yyyy').format(time),
+          'hari': DateFormat('EEEE', 'id_ID').format(time),
+          'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time),
+          'lokasi': '${data['latitude']}, ${data['longitude']}',
+        });
       }
 
+      // Kelompokkan berdasarkan tanggal
+      final groupedByDate = <String, List<Map<String, dynamic>>>{};
+      for (var item in rawAbsensi) {
+        final key = item['tanggal'];
+        groupedByDate.putIfAbsent(key, () => []).add(item);
+      }
+
+      // Buat row untuk Excel
       final excel = Excel.createExcel();
       final sheet = excel['Sheet1'];
-
       sheet.appendRow([
         TextCellValue('NIK'),
         TextCellValue('Nama'),
@@ -237,24 +236,51 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         TextCellValue('Scan Masuk'),
         TextCellValue('Scan Keluar'),
         TextCellValue('Bulan'),
+        TextCellValue('Lokasi Absen Masuk (Latitude, Longitude)'),
+        TextCellValue('Lokasi Absen Keluar (Latitude, Longitude)'),
       ]);
 
-      dailyAbsensi.forEach((key, data) {
-        sheet.appendRow([
-          TextCellValue(nik),
-          TextCellValue(name),
-          TextCellValue(department),
-          TextCellValue(data['tanggal'] ?? ''),
-          TextCellValue(data['hari'] ?? ''),
-          TextCellValue(data['masuk'] ?? ''),
-          TextCellValue(data['keluar'] ?? ''),
-          TextCellValue(data['bulan'] ?? ''),
-        ]);
-      });
+      for (var entry in groupedByDate.entries) {
+        final tanggal = entry.key;
+        final records = entry.value;
 
-      final directory = Directory('/storage/emulated/0/Download');
+        // Urutkan berdasarkan waktu
+        records.sort(
+          (a, b) => (a['time'] as DateTime).compareTo(b['time'] as DateTime),
+        );
+
+        for (int i = 0; i < records.length; i++) {
+          if (records[i]['type'] == 'absen_masuk') {
+            final masuk = records[i];
+            Map<String, dynamic>? keluar;
+            if (i + 1 < records.length &&
+                records[i + 1]['type'] == 'absen_keluar') {
+              keluar = records[i + 1];
+              i++; // skip next karena sudah dipakai
+            }
+
+            sheet.appendRow([
+              TextCellValue(nik),
+              TextCellValue(name),
+              TextCellValue(department),
+              TextCellValue(tanggal),
+              TextCellValue(masuk['hari']),
+              TextCellValue(DateFormat('HH:mm').format(masuk['time'])),
+              TextCellValue(
+                keluar != null
+                    ? DateFormat('HH:mm').format(keluar['time'])
+                    : '',
+              ),
+              TextCellValue(masuk['bulan']),
+              TextCellValue(masuk['lokasi']),
+              TextCellValue(keluar != null ? keluar['lokasi'] : ''),
+            ]);
+          }
+        }
+      }
+      final directory = await getExternalStorageDirectory(); // lebih aman
       final filePath =
-          '${directory.path}/absensi_${name.replaceAll(" ", "_")}_$nik.xlsx';
+          '${directory!.path}/absensi_${name.replaceAll(" ", "_")}_$nik${DateTime.now().millisecondsSinceEpoch}.xlsx';
       final fileBytes = excel.encode();
 
       if (fileBytes != null) {

@@ -18,9 +18,9 @@ class DetailAttendanceScreen extends StatelessWidget {
     final snapshot = await FirebaseFirestore.instance
         .collection('absensi')
         .where('user_id', isEqualTo: userId)
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(now))
-        .orderBy('date')
+        .where('time', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('time', isLessThanOrEqualTo: Timestamp.fromDate(now))
+        .orderBy('time')
         .get();
 
     return snapshot.docs.map((doc) => doc.data()).toList();
