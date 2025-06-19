@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:attendance_face_recognition/screens/employee/attendance/faceattendance.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +17,7 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
   List<Map<String, dynamic>> todayAbsensi = [];
   bool isLoading = true;
   bool _blink = true;
+  final user = FirebaseAuth.instance.currentUser;
   late Timer _blinkTimer;
   @override
   void initState() {
@@ -38,7 +39,6 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
 
   Future<void> fetchTodayAbsensi() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
       final now = DateTime.now();
@@ -47,7 +47,7 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
 
       final snapshot = await FirebaseFirestore.instance
           .collection('absensi')
-          .where('user_id', isEqualTo: user.uid)
+          .where('user_id', isEqualTo: user?.uid)
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
           .where('date', isLessThan: Timestamp.fromDate(endOfDay))
           .orderBy('date')
@@ -188,7 +188,15 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement Absen Masuk
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FaceAttendanceScreen(
+                                type: 'absen_masuk',// dari Firebase Auth
+                              ),
+                            ),
+                          );
+                          Navigator.pushNamed(context, '/faceattendance');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black87,
@@ -197,7 +205,14 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement Absen Keluar
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FaceAttendanceScreen(
+                                type: 'absen_keluar' // dari Firebase Auth
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black87,
