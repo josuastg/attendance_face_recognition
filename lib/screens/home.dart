@@ -45,7 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // ✅ Cek apakah user sudah memiliki face_embedding
       final faceEmbedding = data['face_embedding'];
-      if (faceEmbedding == null || faceEmbedding.toString().isEmpty) {
+      if ((faceEmbedding == null || faceEmbedding.toString().isEmpty) &&
+          role == 'karyawan') {
         // ⏩ Redirect ke halaman pendaftaran wajah
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.pushReplacement(
