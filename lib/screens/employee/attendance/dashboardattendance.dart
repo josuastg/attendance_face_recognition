@@ -48,9 +48,9 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
       final snapshot = await FirebaseFirestore.instance
           .collection('absensi')
           .where('user_id', isEqualTo: user?.uid)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-          .where('date', isLessThan: Timestamp.fromDate(endOfDay))
-          .orderBy('date')
+          .where('time', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('time', isLessThan: Timestamp.fromDate(endOfDay))
+          .orderBy('time')
           .get();
 
       final list = snapshot.docs.map((doc) => doc.data()).toList();
