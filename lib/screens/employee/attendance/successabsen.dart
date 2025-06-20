@@ -38,8 +38,8 @@ class SuccessAbsenScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamedAndRemoveUntil(
                     context,
-                    '/home',
-                    (r) => false,
+                    '/',
+                    (route) => false,
                   );
                 },
                 child: const Text('Dashboard'),

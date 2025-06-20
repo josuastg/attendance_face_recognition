@@ -85,26 +85,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _logout() async {
-    showDialog(
+    final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Konfirmasi Logout"),
         content: const Text("Apakah Anda yakin ingin keluar dari aplikasi?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(), // Batal
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text("Batal"),
           ),
           TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop(); // Tutup dialog
-              await FirebaseAuth.instance.signOut();
-            },
+            onPressed: () => Navigator.of(context).pop(true),
             child: const Text("Ya"),
           ),
         ],
       ),
     );
+
+    if (shouldLogout == true) {
+      await FirebaseAuth.instance.signOut();
+      print("✅ Logout success");
+      // Tidak perlu Navigator.push, biarkan AuthGate mengarahkan ulang
+    }
   }
 
   @override

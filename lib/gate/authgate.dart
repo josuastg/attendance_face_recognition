@@ -21,9 +21,7 @@ class AuthGate extends StatelessWidget {
         // ✅ User sudah login, redirect ke Home
         if (snapshot.hasData) {
           print("✅ User terdeteksi: ${snapshot.data?.email}");
-          return HomeScreen();
-        } else {
-          print("❌ Tidak ada user login");
+          return const HomeScreen();
         }
 
         // ⛔️ Tidak login, tampilkan login page
