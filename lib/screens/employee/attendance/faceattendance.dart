@@ -3,6 +3,7 @@ import 'dart:io' show Platform, File, Directory;
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
@@ -140,7 +141,8 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
       final String newPath = path.join(appDir.path, 'absen_selfie.jpg');
       final newImage = await File(newPath).writeAsBytes(flippedBytes);
       //-6.213659995673977, 106.48862015322251
-      final uri = Uri.parse('http://192.168.1.7:5001/absen');
+      final baseUrl = dotenv.env['API_URL'] ?? '';
+      final uri = Uri.parse('$baseUrl/absen');
       final request = http.MultipartRequest('POST', uri)
         ..files.add(await http.MultipartFile.fromPath('photo', newImage.path))
         ..fields['user_id'] = userId ?? ''

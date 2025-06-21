@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -98,7 +99,8 @@ class _RegisterFaceScreenState extends State<RegisterFaceScreen> {
     );
 
     try {
-      final url = Uri.parse('http://192.168.1.7:5001/register-face');
+      final baseUrl = dotenv.env['API_URL'] ?? '';
+      final url = Uri.parse('$baseUrl/register-face');
       final request = http.MultipartRequest('POST', url);
       for (int i = 0; i < 3; i++) {
         request.files.add(

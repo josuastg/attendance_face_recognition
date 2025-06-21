@@ -2,7 +2,6 @@ import 'package:attendance_face_recognition/gate/authgate.dart';
 import 'package:attendance_face_recognition/screens/admin/attendance_history/attendancelist.dart';
 import 'package:attendance_face_recognition/screens/auth.dart';
 import 'package:attendance_face_recognition/screens/employee/attendance/dashboardattendance.dart';
-import 'package:attendance_face_recognition/screens/employee/attendance/faceattendance.dart';
 import 'package:attendance_face_recognition/screens/employee/attendance/registerface5.dart';
 import 'package:attendance_face_recognition/screens/employee/attendance/successabsen.dart';
 import 'package:attendance_face_recognition/screens/home.dart';
@@ -11,11 +10,13 @@ import 'package:attendance_face_recognition/screens/admin/register/registerkarya
 import 'package:attendance_face_recognition/screens/admin/location/registerlokasiabsen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' show dotenv;
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
