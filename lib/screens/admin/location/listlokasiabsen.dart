@@ -83,22 +83,25 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
 
           return Column(
             children: [
-              if (lokasiList.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/formlokasi');
-                    },
-                    child: const Text('Buat Lokasi Absen'),
-                  ),
+            if (lokasiList.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
                 ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/formlokasi');
+                  },
+                  child: const Text('Buat Lokasi Absen'),
+                ),
+              ),
               Expanded(
                 child: lokasiList.isEmpty
                     ? Center(

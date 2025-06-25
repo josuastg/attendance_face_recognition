@@ -180,7 +180,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 ElevatedButton(
                   onPressed: _isLoading || !isButtonEnabled ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
                     padding: EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),

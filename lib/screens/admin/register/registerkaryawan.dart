@@ -142,7 +142,6 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
               'email': _emailController.text.trim(),
               'departement': _selectedDepartemen,
               'role': 'karyawan',
-              'faceEmbedding': '',
               'created_at': Timestamp.now(),
             });
 
@@ -302,9 +301,15 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isFormValid() && !_isLoading ? _submitForm : null,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Daftar"),
+                    : const Text("Daftar", style: TextStyle(fontSize: 16)),
               ),
             ],
           ),

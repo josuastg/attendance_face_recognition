@@ -198,9 +198,6 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
                           );
                           Navigator.pushNamed(context, '/faceattendance');
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black87,
-                        ),
                         child: const Text("Absen Masuk"),
                       ),
                       ElevatedButton(
@@ -214,9 +211,6 @@ class _DashboarAttendanceScreenState extends State<DashboarAttendanceScreen> {
                             ),
                           );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black87,
-                        ),
                         child: const Text("Absen Keluar"),
                       ),
                     ],

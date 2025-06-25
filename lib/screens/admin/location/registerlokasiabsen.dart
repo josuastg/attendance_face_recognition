@@ -178,6 +178,12 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
               ),
               ElevatedButton(
                 onPressed: _isFormValid() ? _submitForm : null,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('Simpan'),
