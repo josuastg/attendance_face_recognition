@@ -114,7 +114,7 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
               return CarouselSlider(
                 options: CarouselOptions(
                   height: 120,
-                  autoPlay: false,
+                  autoPlay: true,
                   enlargeCenterPage: true,
                   viewportFraction: 0.8,
                   aspectRatio: 2.0,
