@@ -19,6 +19,35 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
   String _searchKeyword = '';
   final bool _isExporting = false;
 
+  Widget buildAvatar(user) {
+    final List<dynamic>? photoUrls = user['photo_url'];
+    final bool hasPhoto = photoUrls != null && photoUrls.isNotEmpty;
+    if (hasPhoto) {
+      return ClipOval(
+        child: Image.network(
+          photoUrls[0],
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('❌ Gagal load foto: $error');
+            return const CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.person, color: Colors.white),
+            );
+          },
+        ),
+      );
+    } else {
+      return const CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.grey,
+        child: Icon(Icons.person, color: Colors.white),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,6 +129,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // 👉 Avatar Karyawan (Foto dari photo_url[0])
+                              buildAvatar(user), // 👈 panggil fungsi avatar
+                              const SizedBox(width: 12),
+
                               // Konten Kiri (Nama, Departemen, Email)
                               Expanded(
                                 child: Column(
