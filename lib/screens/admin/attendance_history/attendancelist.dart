@@ -78,6 +78,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
             "Data yang diambil adalah 1 bulan terakhir.",
             style: TextStyle(fontSize: 12),
           ),
+          const SizedBox(height: 5),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -148,11 +149,11 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       'Departemen : ${user['departement']}',
-                                      style: const TextStyle(fontSize: 12),
+                                      style: const TextStyle(fontSize: 10),
                                     ),
                                     Text(
                                       'Email : ${user['email']}',
-                                      style: const TextStyle(fontSize: 12),
+                                      style: const TextStyle(fontSize: 10),
                                     ),
                                   ],
                                 ),
@@ -160,7 +161,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
 
                               // Tombol Export File di Kanan
                               Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   IconButton(
                                     icon: const Icon(Icons.download),
@@ -173,7 +174,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                                   ),
                                   const Text(
                                     "Export File",
-                                    style: TextStyle(fontSize: 10),
+                                    style: TextStyle(fontSize: 8),
                                   ),
                                 ],
                               ),

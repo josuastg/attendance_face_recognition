@@ -77,7 +77,7 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
         CarouselSlider(
           carouselController: _carouselController,
           options: CarouselOptions(
-            height: 120,
+            height: 100,
             enlargeCenterPage: true,
             viewportFraction: 0.8,
             aspectRatio: 2.0,
@@ -89,8 +89,8 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
               child: ClipOval(
                 child: CachedNetworkImage(
                   imageUrl: url,
-                  width: 120,
-                  height: 120,
+                  width: 100,
+                  height: 100,
                   fit: BoxFit.contain,
                   placeholder: (context, url) =>
                       const CircularProgressIndicator(strokeWidth: 1),
@@ -126,7 +126,7 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(title: const Text("Detail Wajah Karyawan")),
           body: Center(
             child: PhotoView(
               imageProvider: NetworkImage(imageUrl),
@@ -261,8 +261,8 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
                       'id_ID',
                     ).format(time);
                     final formattedTime = DateFormat('HH:mm').format(time);
-                    final photoAbsen = data['photo_url'] ?? null;
-                    print(photoAbsen);
+                    // final photoAbsen = data['photo_url'] ?? null;
+                    // print(photoAbsen);
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 16,
