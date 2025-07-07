@@ -337,7 +337,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           }
         }
       }
-      final directory = await getExternalStorageDirectory(); // lebih aman
+      final directory = await getApplicationDocumentsDirectory();
       DateTime currentTime = DateTime.now();
       String formattedDate = DateFormat(
         'MMMM yyyy',
@@ -345,7 +345,6 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       ).format(currentTime).splitMapJoin("_");
       final filePath =
           '${directory!.path}/absensi_all_${formattedDate}_${DateTime.now().millisecondsSinceEpoch}.xlsx';
-      print('test $filePath');
       final fileBytes = excel.encode();
 
       if (fileBytes != null) {
