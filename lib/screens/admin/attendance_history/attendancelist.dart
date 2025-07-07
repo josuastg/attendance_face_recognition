@@ -485,9 +485,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           }
         }
       }
-      final directory = await getExternalStorageDirectory(); // lebih aman
+
+      final directory = await getApplicationDocumentsDirectory();
       final filePath =
-          '${directory!.path}/absensi_${name.replaceAll(" ", "_")}_$nik${DateTime.now().millisecondsSinceEpoch}.xlsx';
+          '${directory.path}/absensi_${name.replaceAll(" ", "_")}_$nik${DateTime.now().millisecondsSinceEpoch}.xlsx';
       final fileBytes = excel.encode();
 
       if (fileBytes != null) {
