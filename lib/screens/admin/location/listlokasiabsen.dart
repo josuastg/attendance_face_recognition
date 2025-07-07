@@ -83,25 +83,28 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
 
           return Column(
             children: [
-            if (lokasiList.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
+              if (lokasiList.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
                   ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/formlokasi');
-                  },
-                  child: const Text('Buat Lokasi Absen'),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/formlokasi');
+                    },
+                    child: const Text('Buat Lokasi Absen'),
+                  ),
                 ),
-              ),
               Expanded(
                 child: lokasiList.isEmpty
                     ? Center(
@@ -130,6 +133,7 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
                           final lokasi = lokasiList[index];
                           final marketingFlexible =
                               lokasi['marketing_flexible'] ?? false;
+
                           return Card(
                             margin: const EdgeInsets.symmetric(
                               vertical: 8,
@@ -140,6 +144,7 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  // Judul lokasi dan tombol hapus
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -163,31 +168,79 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('Radius: ${lokasi['radius'] ?? '-'}m'),
+
+                                  // Informasi radius dan koordinat
+                                  Text(
+                                    'Radius Toleransi: ${lokasi['radius'] ?? '-'} meter',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  Text(
+                                    'Radius menentukan jarak maksimal pengguna dari titik lokasi absen.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                   Text(
                                     'Latitude: ${lokasi['latitude'].toString()}',
+                                    style: const TextStyle(fontSize: 13),
                                   ),
                                   Text(
                                     'Longitude: ${lokasi['longitude'].toString()}',
+                                    style: const TextStyle(fontSize: 13),
                                   ),
+                                  const SizedBox(height: 4),
+
+                                  // Penjelasan kecil
+                                  const Text(
+                                    '📍 Koordinat lokasi diambil dari titik pusat lokasi perusahaan Anda.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+
                                   const SizedBox(height: 8),
+
+                                  // Marketing flexible
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text('Marketing Flexible :'),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: const [
+                                            Text(
+                                              'Marketing Flexible:',
+                                              style: TextStyle(fontSize: 13),
+                                            ),
+                                            Text(
+                                              'Jika aktif, karyawan marketing bisa absen di luar radius.',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                       Text(
-                                        (lokasi['marketing_flexible'] ?? false)
+                                        marketingFlexible
                                             ? 'Aktif'
                                             : 'Tidak Aktif',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: marketingFlexible
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
                                       ),
                                       Switch(
-                                        value:
-                                            lokasi['marketing_flexible'] ??
-                                            false,
+                                        value: marketingFlexible,
                                         onChanged: (value) async {
                                           await _toggleStatus(lokasi.id, value);
-                                          // Tidak perlu setState(), StreamBuilder akan rebuild sendiri
                                         },
                                       ),
                                     ],

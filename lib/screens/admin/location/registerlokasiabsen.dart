@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class FormLokasiAbsenScreen extends StatefulWidget {
   const FormLokasiAbsenScreen({super.key});
@@ -56,6 +59,30 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
         longitudeErrorText = null;
       }
     });
+  }
+
+  Widget _buildLabelWithInfo(String label, String url) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label),
+        const SizedBox(width: 4),
+        InkWell(
+          onTap: () => _launchUrl(url),
+          child: const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final success = await launchUrlString(
+      url,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!success) {
+      debugPrint('❌ Gagal membuka URL: $url');
+    }
   }
 
   Future<void> _submitForm() async {
@@ -130,7 +157,30 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
               TextFormField(
                 controller: _latitudeController,
                 decoration: InputDecoration(
-                  labelText: 'Latitude',
+                  label: _buildLabelWithInfo(
+                    'Latitude',
+                    'https://lnk.ink/HSd4t',
+                  ),
+                  helper: RichText(
+                    text: TextSpan(
+                      text:
+                          'Koordinat lokasi diambil dari titik pusat lokasi perusahaan Anda.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      children: [
+                        TextSpan(
+                          text: 'Cek info',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              _launchUrl('https://lnk.ink/HSd4t');
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
                   errorText: latitudeErrorText,
                 ),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -140,7 +190,30 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
               TextFormField(
                 controller: _longitudeController,
                 decoration: InputDecoration(
-                  labelText: 'Longitude',
+                  label: _buildLabelWithInfo(
+                    'Longitude',
+                    'https://lnk.ink/HSd4t',
+                  ),
+                  helper: RichText(
+                    text: TextSpan(
+                      text:
+                          'Koordinat lokasi diambil dari titik pusat lokasi perusahaan Anda.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      children: [
+                        TextSpan(
+                          text: 'Cek info',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => _launchUrl(
+                              'https://lnk.ink/HSd4t',
+                            ),
+                        ),
+                      ],
+                    ),
+                  ),
                   errorText: longitudeErrorText,
                 ),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -150,7 +223,9 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
               TextFormField(
                 controller: _radiusController,
                 decoration: const InputDecoration(
-                  labelText: 'Radius Toleransi',
+                  labelText: 'Radius Toleransi (meter)',
+                  helperText:
+                      'Menentukan jarak maksimal absensi dari titik lokasi.',
                   suffixText: 'm',
                 ),
                 keyboardType: TextInputType.number,
@@ -158,24 +233,41 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                     value!.isEmpty ? 'Radius wajib diisi' : null,
               ),
               const SizedBox(height: 20),
+              // Marketing Flexible
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Marketing Flexible (Opsional):',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Marketing Flexible (Opsional)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Jika diaktifkan, karyawan departemen marketing dapat absen di luar radius.',
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
                   ),
                   Switch(
                     value: marketingFlexible,
-                    onChanged: (value) async {
+                    onChanged: (value) {
                       setState(() {
                         marketingFlexible = value;
                       });
-                      // Tidak perlu setState(), StreamBuilder akan rebuild sendiri
                     },
                   ),
                 ],
               ),
+
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isFormValid() ? _submitForm : null,
                 style: ElevatedButton.styleFrom(

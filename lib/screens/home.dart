@@ -169,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 65),
                     Expanded(
                       child: GridView.count(
                         crossAxisCount: 2,
@@ -270,7 +270,7 @@ class IconButtonWithLabel extends StatelessWidget {
             //   shape: BoxShape.circle,
             //   color: Colors.grey[200],
             // ),
-            child: Icon(icon, size: 45, color: Colors.black87),
+            child: Icon(icon, size: 35, color: Colors.black87),
           ),
           const SizedBox(height: 2),
           Text(

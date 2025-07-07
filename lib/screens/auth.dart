@@ -116,10 +116,20 @@ class _AuthScreenState extends State<AuthScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Sign Up',
+                  'Login',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Silakan masuk menggunakan\nakun perusahaan Anda.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
                     color: Colors.black87,
                   ),
                   textAlign: TextAlign.center,
@@ -131,7 +141,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     validateEmail();
                   },
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Email perusahaan ex: xxx@ginsaintipratama.co.id',
                     border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 12),
                     errorText: isEmailValid
@@ -191,7 +201,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 SizedBox(height: 30),
                 Text(
-                  'By signing up, you agree to our Terms of Service\nand Privacy Policy.',
+                  'Dengan masuk, Anda menyetujui Kebijakan Privasi kami.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
