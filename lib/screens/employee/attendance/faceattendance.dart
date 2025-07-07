@@ -62,7 +62,7 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Layanan lokasi belum aktif. Aktifkan GPS.'),
-              content: Text('Tolong aktifkan GPS terlebihan dahulu'),
+              content: Text('Tolong aktifkan GPS terlebih dahulu'),
               actions: [
                 TextButton(
                   onPressed: () async {
