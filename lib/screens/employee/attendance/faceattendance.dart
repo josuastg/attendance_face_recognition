@@ -58,7 +58,22 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
           ),
         );
         if (Platform.isIOS) {
-          await AppSettings.openAppSettings();
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Layanan lokasi belum aktif. Aktifkan GPS.'),
+              content: Text('Tolong aktifkan GPS terlebihan dahulu'),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await AppSettings.openAppSettings();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
         }
         return null;
       }
@@ -77,7 +92,22 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
           const SnackBar(content: Text('Izin lokasi tidak diberikan.')),
         );
         if (Platform.isIOS) {
-          await AppSettings.openAppSettings(); // Buka pengaturan jika iOS
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Layanan lokasi belum aktif.'),
+              content: Text('Tolong aktifkan GPS terlebih dahulu'),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await AppSettings.openAppSettings();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );// Buka pengaturan jika iOS
         }
         return null;
       }
