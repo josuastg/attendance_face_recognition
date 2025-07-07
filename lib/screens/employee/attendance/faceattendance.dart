@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:geolocator/geolocator.dart';
+import 'package:app_settings/app_settings.dart';
 
 class FaceAttendanceScreen extends StatefulWidget {
   final String type;
@@ -47,19 +48,38 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
     );
 
     try {
-      // Minta izin lokasi
+      // Cek apakah GPS diaktifkan
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        Navigator.of(context).pop(); // Tutup dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Layanan lokasi belum aktif. Aktifkan GPS.'),
+          ),
+        );
+        if (Platform.isIOS) {
+          await AppSettings.openAppSettings();
+        }
+        return null;
+      }
+
+      // Cek dan minta izin lokasi
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         permission = await Geolocator.requestPermission();
-        if (permission != LocationPermission.whileInUse &&
-            permission != LocationPermission.always) {
-          Navigator.of(context).pop(); // Tutup dialog
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Izin lokasi tidak diberikan')),
-          );
-          return null;
+      }
+
+      if (permission != LocationPermission.whileInUse &&
+          permission != LocationPermission.always) {
+        Navigator.of(context).pop(); // Tutup dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Izin lokasi tidak diberikan.')),
+        );
+        if (Platform.isIOS) {
+          await AppSettings.openAppSettings(); // Buka pengaturan jika iOS
         }
+        return null;
       }
 
       final position = await Geolocator.getCurrentPosition();
@@ -67,7 +87,7 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
       if (Platform.isAndroid && position.isMocked) {
         Navigator.of(context).pop(); // Tutup dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lokasi tidak valid (mock detected)')),
+          const SnackBar(content: Text('Lokasi tidak valid (mock detected).')),
         );
         return null;
       }
