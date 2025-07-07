@@ -59,21 +59,46 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchKeyword = value.toLowerCase();
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Cari nama karyawan',
-                suffixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-                hintStyle: TextStyle(fontSize: 13),
-              ),
+            child: Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.center, // agar sejajar di atas
+              children: [
+                // TextField diperlebar agar fleksibel
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchKeyword = value.toLowerCase();
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Cari nama karyawan',
+                      suffixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                      hintStyle: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 5,
+                ), // jarak antara TextField dan tombol download
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.download),
+                      onPressed: () {
+                        exportAllFile(context); // panggil fungsi export
+                      },
+                    ),
+                    const Text("Export All", style: TextStyle(fontSize: 8)),
+                  ],
+                ),
+              ],
             ),
           ),
+
           const Text(
             "Data yang diambil adalah 1 bulan terakhir.",
             style: TextStyle(fontSize: 12),
@@ -196,6 +221,154 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> exportAllFile(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // final uid = user['id'];
+
+      final now = DateTime.now();
+      final startDate = DateTime(now.year, now.month - 1, now.day);
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('absensi')
+          .where('time', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('time', isLessThanOrEqualTo: Timestamp.fromDate(now))
+          .orderBy('time')
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak ada data absensi ditemukan')),
+        );
+        return;
+      }
+
+      // final excel = Excel.createExcel();
+      // final sheet = excel['Sheet1'];
+
+      // Buat map pairing masuk & keluar berdasarkan tanggal
+      final rawAbsensi = <Map<String, dynamic>>[];
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        // print(data);
+        final time = (data['time'] as Timestamp).toDate();
+        rawAbsensi.add({
+          'nik': data['nik'],
+          'name': data['name'],
+          'departement': data['departement'],
+          'type': data['type'],
+          'time': time,
+          'tanggal': DateFormat('dd/MM/yyyy').format(time),
+          'hari': DateFormat('EEEE', 'id_ID').format(time),
+          'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time),
+          'lokasi': '${data['latitude']}, ${data['longitude']}',
+        });
+      }
+
+      // Kelompokkan berdasarkan tanggal
+      final groupedByDate = <String, List<Map<String, dynamic>>>{};
+      for (var item in rawAbsensi) {
+        final key = item['tanggal'];
+        // print(key);
+        groupedByDate.putIfAbsent(key, () => []).add(item);
+      }
+
+      // Buat row untuk Excel
+      final excel = Excel.createExcel();
+      final sheet = excel['Sheet1'];
+      sheet.appendRow([
+        TextCellValue('NIK'),
+        TextCellValue('Nama'),
+        TextCellValue('Departemen'),
+        TextCellValue('Tanggal'),
+        TextCellValue('Hari'),
+        TextCellValue('Scan Masuk'),
+        TextCellValue('Scan Keluar'),
+        TextCellValue('Bulan'),
+        TextCellValue('Lokasi Absen Masuk (Latitude, Longitude)'),
+        TextCellValue('Lokasi Absen Keluar (Latitude, Longitude)'),
+      ]);
+
+      for (var entry in groupedByDate.entries) {
+        final tanggal = entry.key;
+        final records = entry.value;
+
+        // Urutkan berdasarkan waktu
+        records.sort(
+          (a, b) => (a['time'] as DateTime).compareTo(b['time'] as DateTime),
+        );
+
+        for (int i = 0; i < records.length; i++) {
+          // print('ssss');
+          // print(records[i]['nik']);
+          if (records[i]['type'] == 'absen_masuk') {
+            final masuk = records[i];
+            Map<String, dynamic>? keluar;
+            if (i + 1 < records.length &&
+                records[i + 1]['type'] == 'absen_keluar') {
+              keluar = records[i + 1];
+              i++; // skip next karena sudah dipakai
+            }
+            sheet.appendRow([
+              TextCellValue(records[i]['nik']),
+              TextCellValue(records[i]['name']),
+              TextCellValue(records[i]['departement']),
+              TextCellValue(tanggal),
+              TextCellValue(masuk['hari']),
+              TextCellValue(DateFormat('HH:mm').format(masuk['time'])),
+              TextCellValue(
+                keluar != null
+                    ? DateFormat('HH:mm').format(keluar['time'])
+                    : '',
+              ),
+              TextCellValue(masuk['bulan']),
+              TextCellValue(masuk['lokasi']),
+              TextCellValue(keluar != null ? keluar['lokasi'] : ''),
+            ]);
+          }
+        }
+      }
+      final directory = await getExternalStorageDirectory(); // lebih aman
+      DateTime currentTime = DateTime.now();
+      String formattedDate = DateFormat(
+        'MMMM yyyy',
+        'id_ID',
+      ).format(currentTime).splitMapJoin("_");
+      final filePath =
+          '${directory!.path}/absensi_all_${formattedDate}_${DateTime.now().millisecondsSinceEpoch}.xlsx';
+      print('test $filePath');
+      final fileBytes = excel.encode();
+
+      if (fileBytes != null) {
+        final file = File(filePath)..createSync(recursive: true);
+        file.writeAsBytesSync(fileBytes);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File berhasil disimpan di: $filePath')),
+        );
+        if (Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        }
+        await OpenFile.open(filePath);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengekspor: $e')));
+    } finally {
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   Future<void> exportFile(
