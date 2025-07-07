@@ -6,7 +6,7 @@
 	<string>Kami memerlukan akses kamera untuk absensi wajah</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Kami memerlukan akses foto untuk unggah gambar</string>
-	 <key>NSLocationWhenInUseUsageDescription</key>
+	<key>NSLocationWhenInUseUsageDescription</key>
   	<string>Aplikasi membutuhkan akses lokasi saat digunakan</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Aplikasi ini membutuhkan akses lokasi bahkan saat berjalan di background.</string>
