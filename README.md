@@ -2,6 +2,10 @@
 
 A new Flutter project.
 
+1. Create File .env on root project 
+2. Create variable API_URL, for the value contact me
+3. flutter pub get, flutter run
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
