@@ -61,7 +61,7 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Layanan lokasi belum aktif. Aktifkan GPS.'),
+              title: const Text('Layanan lokasi belum aktif.'),
               content: Text('Tolong aktifkan GPS terlebih dahulu'),
               actions: [
                 TextButton(
@@ -69,7 +69,7 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
                     await AppSettings.openAppSettings();
                     Navigator.pop(context);
                   },
-                  child: const Text('OK'),
+                  child: const Text('Go to Settings'),
                 ),
               ],
             ),
@@ -103,7 +103,7 @@ class _FaceAttendanceScreenState extends State<FaceAttendanceScreen> {
                     await AppSettings.openAppSettings();
                     Navigator.pop(context);
                   },
-                  child: const Text('OK'),
+                  child: const Text('Go to Settings'),
                 ),
               ],
             ),
