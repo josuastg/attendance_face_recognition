@@ -4,14 +4,15 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class FormLokasiAbsenScreen extends StatefulWidget {
-  const FormLokasiAbsenScreen({super.key});
+class EditLokasiAbsenScreen extends StatefulWidget {
+  final String lokasiId;
+  const EditLokasiAbsenScreen({super.key, required this.lokasiId});
 
   @override
-  State<FormLokasiAbsenScreen> createState() => _FormLokasiAbsenScreenState();
+  State<EditLokasiAbsenScreen> createState() => _EditLokasiAbsenScreenState();
 }
 
-class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
+class _EditLokasiAbsenScreenState extends State<EditLokasiAbsenScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _namaLokasiController = TextEditingController();
   final TextEditingController _latitudeController = TextEditingController();
@@ -31,6 +32,41 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
 
   String? latitudeErrorText;
   String? longitudeErrorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLokasiAbsen(); // Load data dari Firestore
+  }
+
+  Future<void> _loadLokasiAbsen() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('lokasi_absen')
+          .doc(widget.lokasiId)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data()!;
+        _namaLokasiController.text = data['nama_lokasi'] ?? '';
+        _latitudeController.text = data['latitude'].toString();
+        _longitudeController.text = data['longitude'].toString();
+        _radiusController.text = data['radius'].toString();
+        marketingFlexible = data['marketing_flexible'] ?? false;
+        setState(() {});
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Lokasi tidak ditemukan')));
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
+      Navigator.pop(context);
+    }
+  }
 
   void _validateLatitude(String value) {
     final regex = RegExp(r'^-?([1-8]?\d(\.\d+)?|90(\.0+)?)$');
@@ -66,10 +102,10 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
       children: [
         Text(label),
         const SizedBox(width: 4),
-        InkWell(
-          onTap: () => _launchUrl(url),
-          child: const Icon(Icons.info_outline, size: 16, color: Colors.blue),
-        ),
+        // InkWell(
+        //   onTap: () => _launchUrl(url),
+        //   child: const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+        // ),
       ],
     );
   }
@@ -90,9 +126,10 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final ref = await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('lokasi_absen')
-          .add({
+          .doc(widget.lokasiId)
+          .update({
             'nama_lokasi': _namaLokasiController.text.trim(),
             'latitude': _latitudeController.text.trim(),
             'longitude': _longitudeController.text.trim(),
@@ -100,11 +137,10 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
             'created_at': Timestamp.now(),
             'marketing_flexible': marketingFlexible,
           });
-      await ref.set({'id': ref.id}, SetOptions(merge: true));
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Lokasi absen berhasil disimpan.'),
+          title: const Text('Lokasi absen berhasil diubah.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -116,9 +152,6 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
           ],
         ),
       );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('')));
 
       _namaLokasiController.clear();
       _latitudeController.clear();
@@ -136,7 +169,7 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Form Lokasi Absen')),
+      appBar: AppBar(title: const Text('Ubah Lokasi Absen')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -166,17 +199,17 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                           'Koordinat lokasi diambil dari titik pusat lokasi perusahaan Anda.',
                       style: Theme.of(context).textTheme.bodySmall,
                       children: [
-                        TextSpan(
-                          text: 'Cek info',
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              _launchUrl('https://lnk.ink/HSd4t');
-                            },
-                        ),
+                        // TextSpan(
+                        //   text: 'Cek info',
+                        //   style: const TextStyle(
+                        //     color: Colors.blue,
+                        //     decoration: TextDecoration.underline,
+                        //   ),
+                        //   recognizer: TapGestureRecognizer()
+                        //     ..onTap = () {
+                        //       _launchUrl('https://lnk.ink/HSd4t');
+                        //     },
+                        // ),
                       ],
                     ),
                   ),
@@ -184,6 +217,7 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                 ),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 onChanged: _validateLatitude,
+                enabled: false,
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -199,17 +233,15 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                           'Koordinat lokasi diambil dari titik pusat lokasi perusahaan Anda.',
                       style: Theme.of(context).textTheme.bodySmall,
                       children: [
-                        TextSpan(
-                          text: 'Cek info',
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => _launchUrl(
-                              'https://lnk.ink/HSd4t',
-                            ),
-                        ),
+                        // TextSpan(
+                        //   text: 'Cek info',
+                        //   style: const TextStyle(
+                        //     color: Colors.blue,
+                        //     decoration: TextDecoration.underline,
+                        //   ),
+                        //   recognizer: TapGestureRecognizer()
+                        //     ..onTap = () => _launchUrl('https://lnk.ink/HSd4t'),
+                        // ),
                       ],
                     ),
                   ),
@@ -217,6 +249,7 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                 ),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 onChanged: _validateLongitude,
+                enabled: false,
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -277,7 +310,7 @@ class _FormLokasiAbsenScreenState extends State<FormLokasiAbsenScreen> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Simpan'),
+                    : const Text('Ubah'),
               ),
             ],
           ),

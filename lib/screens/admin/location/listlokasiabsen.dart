@@ -1,3 +1,4 @@
+import 'package:attendance_face_recognition/screens/admin/location/editlokasiabsen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,15 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal memperbarui status: $e')));
     }
+  }
+
+  void goToEdit(String docId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditLokasiAbsenScreen(lokasiId: docId),
+      ),
+    );
   }
 
   Future<void> _confirmDelete(BuildContext context, String docId) async {
@@ -159,10 +169,9 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
                                         ),
                                       ),
                                       IconButton(
-                                        onPressed: () =>
-                                            _confirmDelete(context, lokasi.id),
-                                        icon: const Icon(Icons.delete),
-                                        color: Colors.red,
+                                        onPressed: () => goToEdit(lokasi.id),
+                                        // _confirmDelete(context, lokasi.id),
+                                        icon: const Icon(Icons.update),
                                         tooltip: 'Hapus Lokasi',
                                       ),
                                     ],
@@ -185,6 +194,13 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
                                     'Latitude: ${lokasi['latitude'].toString()}',
                                     style: const TextStyle(fontSize: 13),
                                   ),
+                                  const Text(
+                                    '📍 Koordinat latitude diambil dari titik pusat lokasi perusahaan Anda.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                   Text(
                                     'Longitude: ${lokasi['longitude'].toString()}',
                                     style: const TextStyle(fontSize: 13),
@@ -193,7 +209,7 @@ class _ListLokasiAbsenScreenState extends State<ListLokasiAbsenScreen> {
 
                                   // Penjelasan kecil
                                   const Text(
-                                    '📍 Koordinat lokasi diambil dari titik pusat lokasi perusahaan Anda.',
+                                    '📍 Koordinat longitude diambil dari titik pusat lokasi perusahaan Anda.',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Colors.grey,

@@ -109,6 +109,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               stream: FirebaseFirestore.instance
                   .collection('users')
                   .where('role', isEqualTo: 'karyawan')
+                  .where('is_active', isEqualTo: true)
+                  .orderBy("created_at", descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -262,6 +264,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         // print(data);
         final time = (data['time'] as Timestamp).toDate();
         rawAbsensi.add({
+          'photo_url': data['photo_url'],
           'nik': data['nik'],
           'name': data['name'],
           'departement': data['departement'],
@@ -286,6 +289,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       final excel = Excel.createExcel();
       final sheet = excel['Sheet1'];
       sheet.appendRow([
+        TextCellValue('URL Foto Absen'),
         TextCellValue('NIK'),
         TextCellValue('Nama'),
         TextCellValue('Departemen'),
@@ -319,6 +323,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               i++; // skip next karena sudah dipakai
             }
             sheet.appendRow([
+              TextCellValue('${records[i]['photo_url']}'),
               TextCellValue(records[i]['nik']),
               TextCellValue(records[i]['name']),
               TextCellValue(records[i]['departement']),
@@ -414,6 +419,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         final data = doc.data();
         final time = (data['time'] as Timestamp).toDate();
         rawAbsensi.add({
+          'photo_url': data['photo_url'],
           'type': data['type'],
           'time': time,
           'tanggal': DateFormat('dd/MM/yyyy').format(time),
@@ -434,6 +440,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       final excel = Excel.createExcel();
       final sheet = excel['Sheet1'];
       sheet.appendRow([
+        TextCellValue('URL Foto Absen'),
         TextCellValue('NIK'),
         TextCellValue('Nama'),
         TextCellValue('Departemen'),
@@ -464,8 +471,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               keluar = records[i + 1];
               i++; // skip next karena sudah dipakai
             }
-
             sheet.appendRow([
+              TextCellValue('${records[i]['photo_url']}'),
               TextCellValue(nik),
               TextCellValue(name),
               TextCellValue(department),
