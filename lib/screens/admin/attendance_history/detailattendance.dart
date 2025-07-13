@@ -54,6 +54,29 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
     }
   }
 
+  Future<void> nonaktifkanKaryawan(BuildContext context, String userId) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'is_active': false,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Karyawan berhasil dinonaktifkan')),
+      );
+
+      // Redirect ke halaman list karyawan
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/listattendance',
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menonaktifkan: $e')));
+    }
+  }
+
   void preloadImages(List<String> urls) {
     for (final url in urls) {
       precacheImage(CachedNetworkImageProvider(url), context);
@@ -144,6 +167,38 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
       appBar: AppBar(
         title: const Text("Riwayat Kehadiran"),
         leading: BackButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.block),
+            tooltip: 'Nonaktifkan Karyawan',
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Konfirmasi'),
+                  content: const Text(
+                    'Apakah Anda yakin ingin menonaktifkan karyawan ini?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Batal'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Ya, Nonaktifkan'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                // Panggil fungsi nonaktifkan
+                await nonaktifkanKaryawan(context, widget.userId);
+              }
+            },
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,63 +309,89 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
                     final type = data['type'] == 'absen_masuk'
                         ? 'Absen Masuk'
                         : 'Absen Keluar';
-                    ;
+
                     final time = (data['time'] as Timestamp).toDate();
                     final formattedDate = DateFormat(
                       'dd MMM yyyy',
                       'id_ID',
                     ).format(time);
                     final formattedTime = DateFormat('HH:mm').format(time);
-                    // final photoAbsen = data['photo_url'] ?? null;
-                    // print(photoAbsen);
+                    final photoAbsen = data['photo_url'];
+
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(10),
-                        title: Center(
-                          child: Padding(
-                            padding: EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              type,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Kolom kiri: teks absen, tanggal, jam
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Text(
+                                        type,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(formattedDate),
+                                  Text(formattedTime),
+                                ],
                               ),
                             ),
-                          ),
+
+                            // Kolom kanan: gambar atau teks fallback
+                            (photoAbsen != null &&
+                                    photoAbsen.toString().isNotEmpty)
+                                ? GestureDetector(
+                                    onTap: () => openFullScreen(photoAbsen),
+                                    child: ClipOval(
+                                      child: Image.network(
+                                        photoAbsen,
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              debugPrint(
+                                                '❌ Gagal load foto: $error',
+                                              );
+                                              return const CircleAvatar(
+                                                radius: 0,
+                                                backgroundColor: Colors.grey,
+                                                child: Icon(
+                                                  Icons.person,
+                                                  color: Colors.white,
+                                                ),
+                                              );
+                                            },
+                                      ),
+                                    ),
+                                  )
+                                : const Padding(
+                                    padding: EdgeInsets.only(top: 35, right: 8),
+                                    child: Text(
+                                      '-',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                          ],
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [Text(formattedDate), Text(formattedTime)],
-                        ),
-                        // trailing: photoAbsen != null
-                        //     ? GestureDetector(
-                        //         onTap: () => openFullScreen(photoAbsen),
-                        //         child: ClipOval(
-                        //           child: Image.network(
-                        //             photoAbsen,
-                        //             width: 60,
-                        //             height: 60,
-                        //             fit: BoxFit.contain,
-                        //             errorBuilder: (context, error, stackTrace) {
-                        //               debugPrint('❌ Gagal load foto: $error');
-                        //               return const CircleAvatar(
-                        //                 radius: 60,
-                        //                 backgroundColor: Colors.grey,
-                        //                 child: Icon(
-                        //                   Icons.person,
-                        //                   color: Colors.white,
-                        //                 ),
-                        //               );
-                        //             },
-                        //           ),
-                        //         ),
-                        //       )
-                        //     : null,
                       ),
                     );
                   },
