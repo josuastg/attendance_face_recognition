@@ -1,3 +1,4 @@
+import 'package:attendance_face_recognition/screens/admin/register/bulkcreate.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -143,6 +144,7 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
               'departement': _selectedDepartemen,
               'role': 'karyawan',
               'created_at': Timestamp.now(),
+              'is_active': true
             });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -150,7 +152,7 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
         );
 
         // Reset field
-        _namaController.clear();
+      _namaController.clear();
         _nikController.clear();
         _emailController.clear();
         _passwordController.clear();
@@ -171,6 +173,7 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
       setState(() => _isLoading = false);
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -178,6 +181,23 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
       appBar: AppBar(
         title: const Text("Pendaftaran Karyawan"),
         leading: const BackButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            tooltip: 'Bulk Create Users',
+            onPressed: () {
+              // Aksi ketika tombol ditekan
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BulkUploadUsersScreen(
+                    adminId: "OqG2yAF2fWh3Xnz7SIWAIbTa43y1"
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
