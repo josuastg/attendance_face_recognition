@@ -84,7 +84,7 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
       final baseUrl = dotenv.env['API_URL'] ?? '';
 
       final response = await dio.post(
-        'http://192.168.1.8:5001/bulk-create-users',
+        '$baseUrl/bulk-create-users',
         data: {'admin_id': widget.adminId, 'users': users},
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
