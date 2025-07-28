@@ -1,3 +1,4 @@
+import 'package:attendance_face_recognition/screens/resetpassword.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -38,28 +39,38 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
-  void validateEmail() {
+  bool validateEmail() {
+    final email = _emailController.text.trim();
+
+    final isValid =
+        email.isNotEmpty &&
+        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+
     setState(() {
-      if (_emailController.text.isEmpty) {
-        isEmailValid = true;
-      } else {
-        isEmailValid = RegExp(
-          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-        ).hasMatch(_emailController.text);
-      }
+      isEmailValid = isValid;
     });
-    return;
+
+    return isValid;
   }
 
-  void validatePassword() {
+  bool validatePassword() {
+    final password = _passwordController.text.trim();
+
+    final isValid = password.isNotEmpty && password.length >= 8;
+
     setState(() {
-      if (_passwordController.text.isEmpty) {
-        isPasswordValid = true;
-      } else {
-        isPasswordValid = _passwordController.text.length >= 8;
-      }
+      isPasswordValid = isValid;
     });
-    return;
+
+    return isValid;
+  }
+
+  void forgotPassword() async {
+    try {
+      await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
+    } catch (e) {
+      print(e);
+    }
   }
 
   void _login() async {
@@ -67,21 +78,50 @@ class _AuthScreenState extends State<AuthScreen> {
       _isLoading = true;
       errorMessage = '';
     });
-    validateEmail();
-    validatePassword();
+
+    // Validasi form dulu
+    if (!validateEmail() || !validatePassword()) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
     try {
       await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Login berhasil")));
+      ).showSnackBar(const SnackBar(content: Text("Login berhasil")));
 
       // TODO: Redirect ke halaman utama
     } on FirebaseAuthException catch (e) {
+      String userFriendlyMessage;
+      print('lala$e.code');
+      switch (e.code) {
+        case 'invalid-email':
+          userFriendlyMessage = 'Format email tidak valid.';
+          break;
+        case 'user-disabled':
+          userFriendlyMessage = 'Akun ini telah dinonaktifkan.';
+          break;
+        case 'user-not-found':
+        case 'wrong-password':
+          userFriendlyMessage = 'Email atau password salah.';
+          break;
+        case 'too-many-requests':
+          userFriendlyMessage =
+              'Terlalu banyak percobaan login. Silakan coba beberapa saat lagi.';
+          break;
+        default:
+          userFriendlyMessage =
+              'Terjadi kesalahan saat login. Email atau password salah.';
+          break;
+      }
+
       setState(() {
-        errorMessage = e.message ?? 'Login gagal';
+        errorMessage = userFriendlyMessage;
       });
 
       ScaffoldMessenger.of(
@@ -89,8 +129,12 @@ class _AuthScreenState extends State<AuthScreen> {
       ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } catch (e) {
       setState(() {
-        errorMessage = 'Terjadi kesalahan saat login';
+        errorMessage = 'Terjadi kesalahan yang tidak diketahui.';
       });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -141,7 +185,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     validateEmail();
                   },
                   decoration: InputDecoration(
-                    labelText: 'Email perusahaan ex: xxx@ginsaintipratama.co.id',
+                    labelText: 'Email ex: xxx@ginsaintipratama.co.id',
                     border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 12),
                     errorText: isEmailValid
@@ -178,6 +222,21 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                 ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ResetPasswordScreen(),
+                        ),
+                      );
+                    },
+                    child: Text("Lupa Password?"),
+                  ),
+                ),
+
                 if (errorMessage.isNotEmpty) ...[
                   SizedBox(height: 16),
                   Text(

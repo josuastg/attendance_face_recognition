@@ -55,7 +55,6 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
     setState(() => isUploading = true);
 
     try {
-      showLoadingDialog();
       // Read Excel
       final bytes = selectedFile!.readAsBytesSync();
       final excel = Excel.decodeBytes(bytes);
@@ -76,6 +75,7 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
             'name': name,
             'departemen': departemen,
             'nik': nik,
+            'photo_url': []
           });
         }
       }
