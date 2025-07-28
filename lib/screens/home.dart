@@ -172,8 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 65),
                     Expanded(
                       child: GridView.count(
-                        crossAxisCount: 2,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        crossAxisCount: role == 'karyawan' ? 2 : 3,
                         mainAxisSpacing: 20,
                         crossAxisSpacing: 20,
                         children: [
@@ -202,6 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                           if (role == 'admin') ...[
                             IconButtonWithLabel(
+                              icon: Icons.dashboard,
+                              label: "Dashboard",
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/dashboardhrd');
+                              },
+                            ),
+                            IconButtonWithLabel(
                               icon: Icons.list,
                               label: "List Kehadiran Karyawan",
                               onPressed: () {
@@ -220,16 +226,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                             IconButtonWithLabel(
-                              icon: Icons.logout,
-                              label: "Keluar Aplikasi",
-                              onPressed: _logout,
-                            ),
-                            IconButtonWithLabel(
                               icon: Icons.location_on,
                               label: "Setting Lokasi Absen",
                               onPressed: () {
                                 Navigator.pushNamed(context, '/listlokasi');
                               },
+                            ),
+                            IconButtonWithLabel(
+                              icon: Icons.logout,
+                              label: "Keluar Aplikasi",
+                              onPressed: _logout,
                             ),
                           ],
                         ],

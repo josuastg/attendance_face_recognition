@@ -144,7 +144,8 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
               'departement': _selectedDepartemen,
               'role': 'karyawan',
               'created_at': Timestamp.now(),
-              'is_active': true
+              'photo_url': [],
+              // 'is_active': true
             });
 
         ScaffoldMessenger.of(context).showSnackBar(

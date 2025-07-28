@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'dart:math';
 
 class AttendanceListScreen extends StatefulWidget {
   const AttendanceListScreen({super.key});
@@ -18,6 +19,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchKeyword = '';
   final bool _isExporting = false;
+  String _selectedDepartement = 'Semua';
+  List<String> _departementList = ['Semua'];
 
   Widget buildAvatar(user) {
     final List<dynamic>? photoUrls = user['photo_url'];
@@ -48,6 +51,60 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
     }
   }
 
+  List<dynamic> _allList = [];
+  List<dynamic> _filteredList = [];
+
+  Future<void> fetchData() async {
+    final snapshot = await FirebaseFirestore.instance.collection('users').get();
+    _allList = snapshot.docs.toList();
+    setState(() {
+      _filteredList = _allList;
+    });
+  }
+
+  void _resetFilter() {
+    setState(() {
+      _searchKeyword = '';
+      _searchController.clear();
+      _selectedDepartement = 'Semua'; // atau "" jika tidak punya label default
+    });
+    fetchData();
+  }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const earthRadius = 6371000; // in meters
+    final dLat = (lat2 - lat1) * (pi / 180);
+    final dLon = (lon2 - lon1) * (pi / 180);
+
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * (pi / 180)) *
+            cos(lat2 * (pi / 180)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadius * c;
+  }
+
+  Map<String, dynamic>? lokasiKantor;
+
+  Future<void> getLokasiKantor() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('lokasi_absen')
+        .limit(1) // ganti dengan ID lokasi jika perlu
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      lokasiKantor = snapshot.docs.first.data(); // atau docs[0].data()
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getLokasiKantor();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,14 +131,73 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                     },
                     decoration: InputDecoration(
                       hintText: 'Cari nama karyawan',
-                      suffixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                      hintStyle: TextStyle(fontSize: 13),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchKeyword = '';
+                                });
+                              },
+                            )
+                          : const Icon(Icons.search),
+                      border: const OutlineInputBorder(),
+                      hintStyle: const TextStyle(fontSize: 13),
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 5,
+                const SizedBox(width: 5),
+                Column(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.filter_list),
+                      tooltip: 'Filter Departemen',
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled:
+                              true, // Penting untuk memberi ruang lebih
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
+                          ),
+                          builder: (BuildContext context) {
+                            return DraggableScrollableSheet(
+                              expand: false,
+                              initialChildSize: 0.5, // Tinggi awal
+                              minChildSize: 0.3,
+                              maxChildSize: 0.9,
+                              builder: (_, controller) {
+                                return ListView.builder(
+                                  controller: controller,
+                                  itemCount: _departementList.length,
+                                  itemBuilder: (context, index) {
+                                    final dept = _departementList[index];
+                                    return ListTile(
+                                      title: Text(dept),
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedDepartement = dept;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                      selected: dept == _selectedDepartement,
+                                    );
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    Text(
+                      _selectedDepartement,
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ],
                 ), // jarak antara TextField dan tombol download
                 Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -109,7 +225,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               stream: FirebaseFirestore.instance
                   .collection('users')
                   .where('role', isEqualTo: 'karyawan')
-                  .where('is_active', isEqualTo: true)
+                  // .where('is_active', isEqualTo: true)
                   .orderBy("created_at", descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
@@ -117,14 +233,48 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                var filteredDocs = snapshot.data!.docs.where((doc) {
+                var allDocs = snapshot.data!.docs;
+
+                _departementList = ['Semua'];
+                final harcodeDepartment = [
+                  'Accounting',
+                  'Engineering',
+                  'HRD',
+                  'MIS',
+                  'Marketing',
+                  'PPIC',
+                  'Produksi',
+                  'Purchasing',
+                  'QA',
+                  'Others',
+                ];
+                _departementList.addAll(
+                  harcodeDepartment.map((e) => e).toSet().toList(),
+                );
+
+                var filteredDocs = allDocs.where((doc) {
                   final name = doc['name'].toString().toLowerCase();
-                  return name.contains(_searchKeyword);
+                  final departement = doc['departement'].toString();
+                  final matchesSearch = name.contains(_searchKeyword);
+                  final matchesDept =
+                      _selectedDepartement == 'Semua' ||
+                      departement == _selectedDepartement;
+                  return matchesSearch && matchesDept;
                 }).toList();
 
                 if (filteredDocs.isEmpty) {
                   return const Center(
-                    child: Text('Tidak ada karyawan ditemukan.'),
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'Karyawan yang Anda cari tidak ditemukan.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   );
                 }
 
@@ -142,7 +292,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                               userName: user['name'],
                             ),
                           ),
-                        );
+                        ).then((_) {
+                          _resetFilter(); // Reset filter setelah kembali
+                        });
                       },
                       child: Card(
                         margin: const EdgeInsets.symmetric(
@@ -263,6 +415,25 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         final data = doc.data();
         // print(data);
         final time = (data['time'] as Timestamp).toDate();
+        final double latKantor =
+            double.tryParse(lokasiKantor!['latitude'].toString()) ?? 0.0;
+        final double longKantor =
+            double.tryParse(lokasiKantor!['longitude'].toString()) ?? 0.0;
+
+        final double latUser =
+            double.tryParse(data['latitude'].toString()) ?? 0.0;
+        final double longUser =
+            double.tryParse(data['longitude'].toString()) ?? 0.0;
+
+        final double radiusKantor =
+            double.tryParse(lokasiKantor!['radius'].toString()) ?? 0.0;
+        final double jarak = calculateDistance(
+          latKantor,
+          longKantor,
+          latUser,
+          longUser,
+        );
+        final bool diDalamKantor = jarak <= radiusKantor;
         rawAbsensi.add({
           'photo_url': data['photo_url'],
           'nik': data['nik'],
@@ -273,7 +444,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           'tanggal': DateFormat('dd/MM/yyyy').format(time),
           'hari': DateFormat('EEEE', 'id_ID').format(time),
           'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time),
-          'lokasi': '${data['latitude']}, ${data['longitude']}',
+          'posisi': diDalamKantor ? 'Dalam Kantor' : 'Luar Kantor',
         });
       }
 
@@ -298,8 +469,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         TextCellValue('Scan Masuk'),
         TextCellValue('Scan Keluar'),
         TextCellValue('Bulan'),
-        TextCellValue('Lokasi Absen Masuk (Latitude, Longitude)'),
-        TextCellValue('Lokasi Absen Keluar (Latitude, Longitude)'),
+        TextCellValue('Posisi Absen Masuk'),
+        TextCellValue('Posisi Absen Keluar'),
       ]);
 
       for (var entry in groupedByDate.entries) {
@@ -336,8 +507,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                     : '',
               ),
               TextCellValue(masuk['bulan']),
-              TextCellValue(masuk['lokasi']),
-              TextCellValue(keluar != null ? keluar['lokasi'] : ''),
+              TextCellValue(masuk['posisi']),
+              TextCellValue(keluar != null ? keluar['posisi'] : ''),
             ]);
           }
         }
@@ -418,6 +589,25 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       for (var doc in snapshot.docs) {
         final data = doc.data();
         final time = (data['time'] as Timestamp).toDate();
+        final double latKantor =
+            double.tryParse(lokasiKantor!['latitude'].toString()) ?? 0.0;
+        final double longKantor =
+            double.tryParse(lokasiKantor!['longitude'].toString()) ?? 0.0;
+
+        final double latUser =
+            double.tryParse(data['latitude'].toString()) ?? 0.0;
+        final double longUser =
+            double.tryParse(data['longitude'].toString()) ?? 0.0;
+
+        final double radiusKantor =
+            double.tryParse(lokasiKantor!['radius'].toString()) ?? 0.0;
+        final double jarak = calculateDistance(
+          latKantor,
+          longKantor,
+          latUser,
+          longUser,
+        );
+        final bool diDalamKantor = jarak <= radiusKantor;
         rawAbsensi.add({
           'photo_url': data['photo_url'],
           'type': data['type'],
@@ -425,7 +615,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           'tanggal': DateFormat('dd/MM/yyyy').format(time),
           'hari': DateFormat('EEEE', 'id_ID').format(time),
           'bulan': DateFormat('MMMM yyyy', 'id_ID').format(time),
-          'lokasi': '${data['latitude']}, ${data['longitude']}',
+          'posisi': diDalamKantor ? 'Dalam Kantor' : 'Luar Kantor',
         });
       }
 
@@ -449,8 +639,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         TextCellValue('Scan Masuk'),
         TextCellValue('Scan Keluar'),
         TextCellValue('Bulan'),
-        TextCellValue('Lokasi Absen Masuk (Latitude, Longitude)'),
-        TextCellValue('Lokasi Absen Keluar (Latitude, Longitude)'),
+        TextCellValue('Posisi Absen Masuk'),
+        TextCellValue('Posisi Absen Keluar'),
       ]);
 
       for (var entry in groupedByDate.entries) {
@@ -485,8 +675,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                     : '',
               ),
               TextCellValue(masuk['bulan']),
-              TextCellValue(masuk['lokasi']),
-              TextCellValue(keluar != null ? keluar['lokasi'] : ''),
+              TextCellValue(masuk['posisi']),
+              TextCellValue(keluar != null ? keluar['posisi'] : ''),
             ]);
           }
         }

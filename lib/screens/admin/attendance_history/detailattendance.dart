@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:math';
 
 class DetailAttendanceScreen extends StatefulWidget {
   final String userId;
@@ -83,10 +85,39 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
     }
   }
 
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const earthRadius = 6371000; // in meters
+    final dLat = (lat2 - lat1) * (pi / 180);
+    final dLon = (lon2 - lon1) * (pi / 180);
+
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * (pi / 180)) *
+            cos(lat2 * (pi / 180)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadius * c;
+  }
+
+  Map<String, dynamic>? lokasiKantor;
+
+  Future<void> getLokasiKantor() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('lokasi_absen')
+        .limit(1) // ganti dengan ID lokasi jika perlu
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      lokasiKantor = snapshot.docs.first.data(); // atau docs[0].data()
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     getUserPhotoUrls();
+    getLokasiKantor();
   }
 
   Widget buildCarousel() {
@@ -168,36 +199,36 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
         title: const Text("Riwayat Kehadiran"),
         leading: BackButton(),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.block),
-            tooltip: 'Nonaktifkan Karyawan',
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Konfirmasi'),
-                  content: const Text(
-                    'Apakah Anda yakin ingin menonaktifkan karyawan ini?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Batal'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Ya, Nonaktifkan'),
-                    ),
-                  ],
-                ),
-              );
+          // IconButton(
+          //   icon: const Icon(Icons.block),
+          //   tooltip: 'Nonaktifkan Karyawan',
+          //   onPressed: () async {
+          //     final confirm = await showDialog<bool>(
+          //       context: context,
+          //       builder: (context) => AlertDialog(
+          //         title: const Text('Konfirmasi'),
+          //         content: const Text(
+          //           'Apakah Anda yakin ingin menonaktifkan karyawan ini?',
+          //         ),
+          //         actions: [
+          //           TextButton(
+          //             onPressed: () => Navigator.of(context).pop(false),
+          //             child: const Text('Batal'),
+          //           ),
+          //           TextButton(
+          //             onPressed: () => Navigator.of(context).pop(true),
+          //             child: const Text('Ya, Nonaktifkan'),
+          //           ),
+          //         ],
+          //       ),
+          //     );
 
-              if (confirm == true) {
-                // Panggil fungsi nonaktifkan
-                await nonaktifkanKaryawan(context, widget.userId);
-              }
-            },
-          ),
+          //     if (confirm == true) {
+          //       // Panggil fungsi nonaktifkan
+          //       await nonaktifkanKaryawan(context, widget.userId);
+          //     }
+          //   },
+          // ),
         ],
       ),
       body: Column(
@@ -317,7 +348,31 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
                     ).format(time);
                     final formattedTime = DateFormat('HH:mm').format(time);
                     final photoAbsen = data['photo_url'];
+                    final double latKantor =
+                        double.tryParse(lokasiKantor!['latitude'].toString()) ??
+                        0.0;
+                    final double longKantor =
+                        double.tryParse(
+                          lokasiKantor!['longitude'].toString(),
+                        ) ??
+                        0.0;
 
+                    final double latUser =
+                        double.tryParse(data['latitude'].toString()) ?? 0.0;
+                    final double longUser =
+                        double.tryParse(data['longitude'].toString()) ?? 0.0;
+
+                    final double radiusKantor =
+                        double.tryParse(lokasiKantor!['radius'].toString()) ??
+                        0.0;
+                    print('radius$radiusKantor');
+                    final double jarak = calculateDistance(
+                      latKantor,
+                      longKantor,
+                      latUser,
+                      longUser,
+                    );
+                    final bool diDalamKantor = jarak <= radiusKantor;
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -325,71 +380,125 @@ class _DetailAttendanceScreenState extends State<DetailAttendanceScreen> {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(10),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Column(
                           children: [
-                            // Kolom kiri: teks absen, tanggal, jam
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Text(
-                                        type,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Kolom kiri: teks absen, tanggal, jam
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          child: Text(
+                                            type,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      Text(formattedDate),
+                                      Text(formattedTime),
+                                    ],
                                   ),
-                                  Text(formattedDate),
-                                  Text(formattedTime),
-                                ],
-                              ),
-                            ),
+                                ),
 
-                            // Kolom kanan: gambar atau teks fallback
-                            (photoAbsen != null &&
-                                    photoAbsen.toString().isNotEmpty)
-                                ? GestureDetector(
-                                    onTap: () => openFullScreen(photoAbsen),
-                                    child: ClipOval(
-                                      child: Image.network(
-                                        photoAbsen,
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                              debugPrint(
-                                                '❌ Gagal load foto: $error',
-                                              );
-                                              return const CircleAvatar(
-                                                radius: 0,
-                                                backgroundColor: Colors.grey,
-                                                child: Icon(
-                                                  Icons.person,
-                                                  color: Colors.white,
-                                                ),
-                                              );
-                                            },
+                                // Kolom kanan: gambar atau teks fallback
+                                (photoAbsen != null &&
+                                        photoAbsen.toString().isNotEmpty)
+                                    ? GestureDetector(
+                                        onTap: () => openFullScreen(photoAbsen),
+                                        child: ClipOval(
+                                          child: Image.network(
+                                            photoAbsen,
+                                            width: 60,
+                                            height: 60,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  debugPrint(
+                                                    '❌ Gagal load foto: $error',
+                                                  );
+                                                  return const CircleAvatar(
+                                                    radius: 0,
+                                                    backgroundColor:
+                                                        Colors.grey,
+                                                    child: Icon(
+                                                      Icons.person,
+                                                      color: Colors.white,
+                                                    ),
+                                                  );
+                                                },
+                                          ),
+                                        ),
+                                      )
+                                    : const Padding(
+                                        padding: EdgeInsets.only(
+                                          top: 35,
+                                          right: 8,
+                                        ),
+                                        child: Text(
+                                          '-',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                : const Padding(
-                                    padding: EdgeInsets.only(top: 35, right: 8),
-                                    child: Text(
-                                      '-',
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 12,
-                                      ),
-                                    ),
+                              ],
+                            ),
+                            SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 16,
+                                  color: diDalamKantor
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  diDalamKantor? 'Dalam Kantor': 'Luar Kantor',
+                                  style: TextStyle(
+                                    color: diDalamKantor
+                                        ? Colors.green
+                                        : Colors.red,
                                   ),
+                                ),
+                              ],
+                            ),
+                            // Cek dan tampilkan lokasi
+                            if (data['latitude'] != null &&
+                                data['longitude'] != null) ...[
+                              TextButton.icon(
+                                icon: const Icon(Icons.location_on, size: 18),
+                                iconAlignment: IconAlignment.start,
+                                label: const Text(
+                                  "Lihat di Google Maps",
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                onPressed: () {
+                                  final lat = data['latitude'];
+                                  final lng = data['longitude'];
+                                  final url =
+                                      'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+                                  launchUrl(
+                                    Uri.parse(url),
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),

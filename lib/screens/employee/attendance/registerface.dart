@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
+import 'dart:convert';
 
 class RegisterFaceScreen extends StatefulWidget {
   const RegisterFaceScreen({super.key});
@@ -116,6 +117,8 @@ class _RegisterFaceScreenState extends State<RegisterFaceScreen> {
 
       print('responku $response');
       print(response.reasonPhrase);
+      final responseBody = await response.stream.bytesToString();
+      final msg = jsonDecode(responseBody);
       if (response.statusCode == 200) {
         // ✅ Tampilkan dialog berhasil simpan
         if (!mounted) return;
@@ -142,9 +145,21 @@ class _RegisterFaceScreenState extends State<RegisterFaceScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Gagal simpan foto!')));
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Gagal Daftar Wajah'),
+            content: Text(
+              'Gagal melakukan pendaftaran wajah, karena ${msg['error'].toString().toLowerCase()}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
       }
     } catch (e) {
       print('errorku $e');
