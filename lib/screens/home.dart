@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:attendance_face_recognition/screens/admin/register/bulkcreate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -230,6 +231,20 @@ class _HomeScreenState extends State<HomeScreen> {
                               label: "Setting Lokasi Absen",
                               onPressed: () {
                                 Navigator.pushNamed(context, '/listlokasi');
+                              },
+                            ),
+                            IconButtonWithLabel(
+                              icon: Icons.upload_file,
+                              label: "Bulk Register Karyawan",
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => BulkUploadUsersScreen(
+                                      adminId: "OqG2yAF2fWh3Xnz7SIWAIbTa43y1",
+                                    ),
+                                  ),
+                                );
                               },
                             ),
                             IconButtonWithLabel(
