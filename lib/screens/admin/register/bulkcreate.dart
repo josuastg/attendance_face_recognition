@@ -74,8 +74,7 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
             'password': password,
             'name': name,
             'departemen': departemen,
-            'nik': nik,
-            'photo_url': []
+            'nik': nik
           });
         }
       }
