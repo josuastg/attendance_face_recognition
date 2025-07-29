@@ -1,5 +1,6 @@
 import 'package:attendance_face_recognition/gate/authgate.dart';
 import 'package:attendance_face_recognition/screens/admin/attendance_history/attendancelist.dart';
+import 'package:attendance_face_recognition/screens/admin/dashboard/dashboard.dart';
 import 'package:attendance_face_recognition/screens/auth.dart';
 import 'package:attendance_face_recognition/screens/employee/attendance/dashboardattendance.dart';
 import 'package:attendance_face_recognition/screens/employee/attendance/registerface5.dart';
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         "/dashboardattendance": (context) => DashboarAttendanceScreen(),
         "/faceregistrationscreen": (context) => FaceRegistrationScreen(),
         "/success-absen": (context) => SuccessAbsenScreen(),
+        "/dashboardhrd": (context) => DashboardScreen(),
       },
       theme: ThemeData(
         useMaterial3: true,
