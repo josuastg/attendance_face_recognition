@@ -107,20 +107,33 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Tetapkan daftar departemen (jika belum)
+    _departementList = ['Semua'];
+    final hardcodeDepartments = [
+      'Accounting',
+      'Engineering',
+      'HRD',
+      'MIS',
+      'Marketing',
+      'PPIC',
+      'Produksi',
+      'Purchasing',
+      'QA',
+      'Others',
+    ];
+    _departementList.addAll(hardcodeDepartments);
     return Scaffold(
       appBar: AppBar(
         title: const Text("List Kehadiran Karyawan"),
-        leading: BackButton(),
+        leading: const BackButton(),
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.center, // agar sejajar di atas
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // TextField diperlebar agar fleksibel
                 Expanded(
                   child: TextField(
                     controller: _searchController,
@@ -151,61 +164,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 Column(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.filter_list),
-                      tooltip: 'Filter Departemen',
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled:
-                              true, // Penting untuk memberi ruang lebih
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                          ),
-                          builder: (BuildContext context) {
-                            return DraggableScrollableSheet(
-                              expand: false,
-                              initialChildSize: 0.5, // Tinggi awal
-                              minChildSize: 0.3,
-                              maxChildSize: 0.9,
-                              builder: (_, controller) {
-                                return ListView.builder(
-                                  controller: controller,
-                                  itemCount: _departementList.length,
-                                  itemBuilder: (context, index) {
-                                    final dept = _departementList[index];
-                                    return ListTile(
-                                      title: Text(dept),
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedDepartement = dept;
-                                        });
-                                        Navigator.pop(context);
-                                      },
-                                      selected: dept == _selectedDepartement,
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    Text(
-                      _selectedDepartement,
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                  ],
-                ), // jarak antara TextField dan tombol download
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    IconButton(
                       icon: const Icon(Icons.download),
                       onPressed: () {
-                        exportAllFile(context); // panggil fungsi export
+                        exportAllFile(context);
                       },
                     ),
                     const Text("Export All", style: TextStyle(fontSize: 8)),
@@ -215,17 +176,51 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
             ),
           ),
 
+          // ✅ Filter Departemen dengan DropdownButton (Column)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Filter Departemen :",
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                DropdownButton<String>(
+                  value: _selectedDepartement,
+                  isExpanded: true,
+                  items: _departementList.map((dept) {
+                    return DropdownMenuItem<String>(
+                      value: dept,
+                      child: Text(dept, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedDepartement = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
           const Text(
-            "Data yang diambil adalah 1 bulan terakhir.",
+            "Data absensi yang diambil adalah 1 bulan terakhir.",
             style: TextStyle(fontSize: 12),
           ),
           const SizedBox(height: 5),
+
+          // 👇 Bagian daftar user
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
                   .where('role', isEqualTo: 'karyawan')
-                  // .where('is_active', isEqualTo: true)
                   .orderBy("created_at", descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
@@ -235,31 +230,14 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
 
                 var allDocs = snapshot.data!.docs;
 
-                _departementList = ['Semua'];
-                final harcodeDepartment = [
-                  'Accounting',
-                  'Engineering',
-                  'HRD',
-                  'MIS',
-                  'Marketing',
-                  'PPIC',
-                  'Produksi',
-                  'Purchasing',
-                  'QA',
-                  'Others',
-                ];
-                _departementList.addAll(
-                  harcodeDepartment.map((e) => e).toSet().toList(),
-                );
-
                 var filteredDocs = allDocs.where((doc) {
                   final name = doc['name'].toString().toLowerCase();
-                  final departement = doc['departement'].toString();
-                  final matchesSearch = name.contains(_searchKeyword);
-                  final matchesDept =
+                  final dept = doc['departement'].toString();
+                  final matchSearch = name.contains(_searchKeyword);
+                  final matchDept =
                       _selectedDepartement == 'Semua' ||
-                      departement == _selectedDepartement;
-                  return matchesSearch && matchesDept;
+                      dept == _selectedDepartement;
+                  return matchSearch && matchDept;
                 }).toList();
 
                 if (filteredDocs.isEmpty) {
@@ -292,9 +270,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                               userName: user['name'],
                             ),
                           ),
-                        ).then((_) {
-                          _resetFilter(); // Reset filter setelah kembali
-                        });
+                        ).then((_) => _resetFilter());
                       },
                       child: Card(
                         margin: const EdgeInsets.symmetric(
@@ -303,17 +279,12 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                         ),
                         elevation: 2,
                         child: Padding(
-                          padding: const EdgeInsets.all(
-                            12,
-                          ), // Tambahkan padding agar lebih lega
+                          padding: const EdgeInsets.all(12),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // 👉 Avatar Karyawan (Foto dari photo_url[0])
-                              buildAvatar(user), // 👈 panggil fungsi avatar
+                              buildAvatar(user),
                               const SizedBox(width: 12),
-
-                              // Konten Kiri (Nama, Departemen, Email)
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,10 +308,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                                   ],
                                 ),
                               ),
-
-                              // Tombol Export File di Kanan
                               Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   IconButton(
                                     icon: const Icon(Icons.download),
@@ -367,6 +335,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               },
             ),
           ),
+
           if (_isExporting)
             Container(
               color: Colors.black.withOpacity(0.3),
