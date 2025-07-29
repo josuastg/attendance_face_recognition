@@ -182,23 +182,6 @@ class _RegisterKaryawanScreenState extends State<RegisterKaryawanScreen> {
       appBar: AppBar(
         title: const Text("Pendaftaran Karyawan"),
         leading: const BackButton(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.upload_file),
-            tooltip: 'Bulk Create Users',
-            onPressed: () {
-              // Aksi ketika tombol ditekan
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BulkUploadUsersScreen(
-                    adminId: "OqG2yAF2fWh3Xnz7SIWAIbTa43y1"
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),

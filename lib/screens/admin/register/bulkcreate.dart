@@ -169,7 +169,7 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
         const SizedBox(height: 4),
         GestureDetector(
           onTap: () async {
-            final url = 'https://res.cloudinary.com/dthyhs6rq/raw/upload/v1752422015/template_bulk_upload_dtiqyj.xlsx';
+            final url = 'https://res.cloudinary.com/dthyhs6rq/raw/upload/v1753804840/template_bulk_upload_pped4p.xlsx';
             await launchUrlString(url, mode: LaunchMode.externalApplication);
           },
           child: const Text(
