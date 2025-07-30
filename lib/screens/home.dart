@@ -181,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             IconButtonWithLabel(
                               icon: Icons.history,
                               label: "Riwayat Kehadiran",
+                              
                               onPressed: () {
                                 Navigator.push(
                                   context,
@@ -203,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (role == 'admin') ...[
                             IconButtonWithLabel(
                               icon: Icons.dashboard,
-                              label: "Dashboard",
+                              label: "Dashboard Kehadiran Karyawan",
                               onPressed: () {
                                 Navigator.pushNamed(context, '/dashboardhrd');
                               },
@@ -291,13 +292,13 @@ class IconButtonWithLabel extends StatelessWidget {
             //   shape: BoxShape.circle,
             //   color: Colors.grey[200],
             // ),
-            child: Icon(icon, size: 35, color: Colors.black87),
+            child: Icon(icon, size: 30, color: Colors.black87),
           ),
           const SizedBox(height: 2),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12),
+            style: const TextStyle(fontSize: 10),
           ),
         ],
       ),

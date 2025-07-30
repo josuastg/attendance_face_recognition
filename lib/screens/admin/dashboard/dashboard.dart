@@ -9,7 +9,7 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Dashboard HRD"),
+        title: const Text("Dashboard Kehadiran"),
         leading: const BackButton(),
       ),
       body: Scrollbar(
