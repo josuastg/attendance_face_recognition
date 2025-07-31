@@ -163,7 +163,7 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          '📋 Gunakan template file berikut:',
+          'Gunakan template file berikut:',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
@@ -173,7 +173,7 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
             await launchUrlString(url, mode: LaunchMode.externalApplication);
           },
           child: const Text(
-            '📥 Download Template Excel',
+            'Download Template Excel',
             style: TextStyle(
               color: Colors.blue,
               decoration: TextDecoration.underline,
@@ -193,7 +193,7 @@ class _BulkUploadUsersScreenState extends State<BulkUploadUsersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Bulk Create Users')),
+      appBar: AppBar(title: const Text('Bulk Register Karyawan')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
