@@ -101,7 +101,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Reset Password")),
+      appBar: AppBar(title: Text("Lupa Password")),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
