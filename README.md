@@ -61,9 +61,9 @@ flutter run
 
 ## 🔑 Environment Variables
 
-### Flutter (`lib/config.dart`)
+### Flutter (`.env`)
 ```dart
-const String flaskApiUrl = "http://YOUR_FLASK_SERVER_IP:5000";
+API_URL = http://YOUR_FLASK_SERVER_IP:5000
 ```
 
 ---
