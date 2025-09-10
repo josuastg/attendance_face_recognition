@@ -6,6 +6,9 @@ Built using **Flutter** for the frontend, **Firebase** for authentication & data
 
 ---
 
+## Demo
+https://drive.google.com/drive/folders/1WvaR6Gn7DJ0FBSsSVjwfRNFz1EF46EJU
+
 ## ✨ Features
 
 ### Admin (HRD)
